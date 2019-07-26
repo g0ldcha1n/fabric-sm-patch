@@ -1,0 +1,106 @@
+diff --git a/common/util/utils.go b/common/util/utils.go
+index 42f5867..a868fdb 100644
+--- a/common/util/utils.go
++++ b/common/util/utils.go
+@@ -43,7 +43,7 @@ var availableIDgenAlgs = map[string]alg{
+ 
+ // ComputeSHA256 returns SHA2-256 on data
+ func ComputeSHA256(data []byte) (hash []byte) {
+-	hash, err := factory.GetDefault().Hash(data, &bccsp.SHA256Opts{})
++	hash, err := factory.GetDefault().Hash(data, &bccsp.SM3Opts{})
+ 	if err != nil {
+ 		panic(fmt.Errorf("Failed computing SHA256 on [% x]", data))
+ 	}
+diff --git a/core/ledger/kvledger/txmgmt/rwsetutil/query_results_helper.go b/core/ledger/kvledger/txmgmt/rwsetutil/query_results_helper.go
+index 01de8eb..eb3c959 100644
+--- a/core/ledger/kvledger/txmgmt/rwsetutil/query_results_helper.go
++++ b/core/ledger/kvledger/txmgmt/rwsetutil/query_results_helper.go
+@@ -27,7 +27,7 @@ const (
+ )
+ 
+ var (
+-	hashOpts = &bccsp.SHA256Opts{}
++	hashOpts = &bccsp.SM3Opts{}
+ )
+ 
+ // RangeQueryResultsHelper helps preparing range query results for phantom items detection during validation.
+diff --git a/peer/gossip/mcs.go b/peer/gossip/mcs.go
+index 9a65d4f..b3ae8e5 100644
+--- a/peer/gossip/mcs.go
++++ b/peer/gossip/mcs.go
+@@ -94,7 +94,7 @@ func (s *MSPMessageCryptoService) GetPKIidOfCert(peerIdentity api.PeerIdentityTy
+ 	raw := append(mspIdRaw, sid.IdBytes...)
+ 
+ 	// Hash
+-	digest, err := factory.GetDefault().Hash(raw, &bccsp.SHA256Opts{})
++	digest, err := factory.GetDefault().Hash(raw, &bccsp.SM3Opts{})
+ 	if err != nil {
+ 		mcsLogger.Errorf("Failed computing digest of serialized identity [% x]: [%s]", peerIdentity, err)
+ 
+diff --git a/protos/utils/proputils.go b/protos/utils/proputils.go
+index adca246..5456d3a 100644
+--- a/protos/utils/proputils.go
++++ b/protos/utils/proputils.go
+@@ -582,7 +582,7 @@ func ComputeTxID(nonce, creator []byte) (string, error) {
+ 	// channel configuration
+ 	digest, err := factory.GetDefault().Hash(
+ 		append(nonce, creator...),
+-		&bccsp.SHA256Opts{})
++		&bccsp.SM3Opts{})
+ 	if err != nil {
+ 		return "", err
+ 	}
+diff --git a/protos/utils/txutils.go b/protos/utils/txutils.go
+index e222b56..1501225 100644
+--- a/protos/utils/txutils.go
++++ b/protos/utils/txutils.go
+@@ -404,7 +404,7 @@ func GetProposalHash2(header *common.Header, ccPropPayl []byte) ([]byte, error)
+ 		return nil, errors.New("nil arguments")
+ 	}
+ 
+-	hash, err := factory.GetDefault().GetHash(&bccsp.SHA256Opts{})
++	hash, err := factory.GetDefault().GetHash(&bccsp.SM3Opts{})
+ 	if err != nil {
+ 		return nil, errors.WithMessage(err, "error instantiating hash function")
+ 	}
+@@ -439,7 +439,7 @@ func GetProposalHash1(header *common.Header, ccPropPayl []byte, visibility []byt
+ 		return nil, err
+ 	}
+ 
+-	hash2, err := factory.GetDefault().GetHash(&bccsp.SHA256Opts{})
++	hash2, err := factory.GetDefault().GetHash(&bccsp.SM3Opts{})
+ 	if err != nil {
+ 		return nil, errors.WithMessage(err, "error instantiating hash function")
+ 	}
+diff --git a/token/client/deliver_client.go b/token/client/deliver_client.go
+index d14e7d8..beca10a 100644
+--- a/token/client/deliver_client.go
++++ b/token/client/deliver_client.go
+@@ -105,9 +105,9 @@ func CreateDeliverEnvelope(channelId string, creator []byte, signer SignerIdenti
+ 	var err error
+ 	// check for client certificate and compute SHA2-256 on certificate if present
+ 	if cert != nil && len(cert.Certificate) > 0 {
+-		tlsCertHash, err = factory.GetDefault().Hash(cert.Certificate[0], &bccsp.SHA256Opts{})
++		tlsCertHash, err = factory.GetDefault().Hash(cert.Certificate[0], &bccsp.SM3Opts{})
+ 		if err != nil {
+-			err = errors.New("failed to compute SHA256 on client certificate")
++			err = errors.New("failed to compute SM3Opts on client certificate")
+ 			logger.Errorf("%s", err)
+ 			return nil, err
+ 		}
+diff --git a/token/client/tx_submitter.go b/token/client/tx_submitter.go
+index a29b758..bc4cd57 100644
+--- a/token/client/tx_submitter.go
++++ b/token/client/tx_submitter.go
+@@ -179,9 +179,9 @@ func (s *TxSubmitter) CreateTxEnvelope(txBytes []byte) (string, *common.Envelope
+ 	// check for client certificate and compute SHA2-256 on certificate if present
+ 	cert := s.OrdererClient.Certificate()
+ 	if cert != nil && len(cert.Certificate) > 0 {
+-		tlsCertHash, err = factory.GetDefault().Hash(cert.Certificate[0], &bccsp.SHA256Opts{})
++		tlsCertHash, err = factory.GetDefault().Hash(cert.Certificate[0], &bccsp.SM3Opts{})
+ 		if err != nil {
+-			err = errors.New("failed to compute SHA256 on client certificate")
++			err = errors.New("failed to compute SM3Opts on client certificate")
+ 			logger.Errorf("%s", err)
+ 			return "", nil, err
+ 		}
