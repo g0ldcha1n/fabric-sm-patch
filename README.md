@@ -1,8 +1,10 @@
 ## Hyperledger Fabric 国密补丁
 
-用于Hyperledger Fabric项目支持国密算法，支持V1.1.x以上版本
+用于Hyperledger Fabric项目支持国密算法，目前在V1.4.1版本上，测试通过
 
-cryptogen工具配套支持
+cryptogen工具配套支持, fabric-CA没有测试过
+
+发现flyinox/fabric-sm-patch 中 HASH函数，还是用的SHA256，目前替换为SM3
 
 当前版本采用非插件方式
 
@@ -20,9 +22,11 @@ cryptogen工具配套支持
 
 在fabric主目录下
 
-* git clone https://github.com/flyinox/fabric-sm-patch.git
+* git clone https://github.com/kmadmin/fabric-sm-patch.git
 
 * git am ./fabric-sm-patch/fabric-sm-patch
+
+* git apply ./fabric-sm-patch/fabric-sm3-patch
 
 * make [docker | native]
 
@@ -30,7 +34,5 @@ cryptogen工具配套支持
 
   推荐使用docker镜像方式，其中自带bccsp密码插件
 
-  若使用native方式运行，请注意在peer或者orderer启动时，配置config文件中bccsp密码插件的位置（peer对应core.yaml, orderer对应orderer.yaml），更改方式参见下一章节
-
-  (**注意**，当前dep 和 test 跑不过，所以make docker的时候最后会报错，不影响使用)
+ 
 
